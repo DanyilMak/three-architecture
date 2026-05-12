@@ -56,7 +56,6 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5)
 directionalLight.position.set(20, 40, 20)
 directionalLight.castShadow = true
 
-// Налаштування камери тіней (розширюємо зону, щоб бачити будівлю збоку)
 directionalLight.shadow.mapSize.set(2048, 2048)
 directionalLight.shadow.camera.left = -50
 directionalLight.shadow.camera.right = 50
@@ -109,7 +108,6 @@ gltfLoader.load('/models/building.glb', (gltf) => {
     buildingModel = gltf.scene
     buildingModel.scale.set(8, 8, 8)
     
-    // Встановлюємо будівлю на узбіччя (Z = -15)
     buildingModel.position.set(0, 0, -15) 
     
     buildingModel.traverse(child => { 
@@ -120,7 +118,6 @@ gltfLoader.load('/models/building.glb', (gltf) => {
     })
     scene.add(buildingModel)
 
-    // Прив'язуємо центр світла (target) до нової позиції будівлі для правильних тіней
     directionalLight.target = buildingModel
 
     const buildGui = gui.addFolder('Будівля')
@@ -133,7 +130,7 @@ gltfLoader.load('/models/building.glb', (gltf) => {
 gltfLoader.load('/models/car.glb', (gltf) => {
     carModel = gltf.scene
     carModel.scale.set(3, 3, 3)
-    carModel.position.set(-20, 0.5, 0) // Їде по центру дороги (Z=0)
+    carModel.position.set(-20, 0.5, 0)
     carModel.traverse(child => { if(child.isMesh) child.castShadow = true })
     scene.add(carModel)
 })
@@ -143,8 +140,7 @@ gltfLoader.load('/models/tree.glb', (gltf) => {
     for(let i = -30; i <= 30; i += 10) {
         if (Math.abs(i) < 8) continue
         const treeClone = gltf.scene.clone()
-        // Дерева ставимо ще далі за будівлю
-        treeClone.position.set(i, 0.5, -25) 
+        treeClone.position.set(i, 4.0, -25) 
         treeClone.scale.set(4, 4, 4)
         treeClone.traverse(child => { if(child.isMesh) child.castShadow = true })
         scene.add(treeClone)
@@ -204,21 +200,17 @@ const clock = new THREE.Clock()
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
 
-    // Обертання будівлі
     if (buildingModel) {
         buildingModel.rotation.y += params.rotationSpeed * 0.01
     }
 
-    // Рух машини по дорозі
     if (carModel) {
         carModel.position.x = Math.sin(elapsedTime * 0.5) * 30
         carModel.rotation.y = Math.cos(elapsedTime * 0.5) > 0 ? Math.PI * 0.5 : -Math.PI * 0.5
     }
 
-    // Оновлення рейкастера для ефектів наведення
     raycaster.setFromCamera(mouse, camera)
 
-    // Ефект підсвічування будівлі
     if (buildingModel) {
         const intersectsBuilding = raycaster.intersectObject(buildingModel, true)
         buildingModel.traverse((child) => {
@@ -228,14 +220,13 @@ const tick = () => {
         })
     }
 
-    // Ефект підсвічування тексту
     if (textMesh) {
         const intersectsText = raycaster.intersectObject(textMesh)
         if (intersectsText.length > 0) {
-            textMesh.material.color.set('#ffcc00') // Золотий
+            textMesh.material.color.set('#ffcc00')
             textMesh.scale.set(1.1, 1.1, 1.1)
         } else {
-            textMesh.material.color.set('#ffffff') // Білий
+            textMesh.material.color.set('#ffffff')
             textMesh.scale.set(1, 1, 1)
         }
     }
